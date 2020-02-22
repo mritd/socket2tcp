@@ -8,7 +8,7 @@
 
 ```sh
 ➜ socket2tcp --help
-A simple tool for socket forwarding to remote tcp addresses
+A simple tool for socket forwarding to remote tcp address
 
 Usage:
   socket2tcp [flags]
