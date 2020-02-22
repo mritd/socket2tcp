@@ -56,11 +56,13 @@ func run() {
 			}
 		}
 		go func() {
+			defer func() { _ = inConn.Close() }()
 			outConn, err := net.Dial("tcp", remote)
 			if err != nil {
 				logrus.Error(err)
 				return
 			}
+			defer func() { _ = outConn.Close() }()
 			_, _, err = relay(inConn, outConn)
 			if err != nil {
 				logrus.Error(err)
