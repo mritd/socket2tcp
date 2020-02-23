@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -13,12 +16,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Version, BuildDate, CommitID string
+
 var socket, remote string
+var version bool
 
 var rootCmd = &cobra.Command{
-	Use:   "socket2tcp",
-	Short: "A simple tool for socket forwarding to remote tcp address",
-	Run:   func(cmd *cobra.Command, args []string) { run() },
+	Use:     "socket2tcp",
+	Short:   "A simple tool for socket forwarding to remote tcp address",
+	Version: Version,
+	Run: func(cmd *cobra.Command, args []string) {
+		if version {
+			showVersion()
+		} else {
+			run()
+		}
+	},
 }
 
 func run() {
@@ -83,6 +96,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&remote, "remote", "r", "", "remote tcp address")
 	_ = rootCmd.MarkFlagRequired("socket")
 	_ = rootCmd.MarkFlagRequired("remote")
+	rootCmd.SetVersionTemplate(showVersion())
 }
 
 func initLog() {
@@ -122,4 +136,17 @@ func relay(left, right net.Conn) (int64, int64, error) {
 	}
 
 	return n, rs.N, err
+}
+
+func showVersion() string {
+	bannerBase64 := "ICAgICAgICAgICAgICAgIF8gICAgICAgIF8gICBfX19fXyAgXyAgICAgICAgICAgICAKICAgICAgICAgICAgICAgfCB8ICAgICAgfCB8IC8gX18gIFx8IHwgICAgICAgICAgICAKIF9fXyAgX19fICAgX19ffCB8IF9fX19ffCB8X2AnIC8gLyd8IHxfIF9fXyBfIF9fICAKLyBfX3wvIF8gXCAvIF9ffCB8LyAvIF8gXCBfX3wgLyAvICB8IF9fLyBfX3wgJ18gXCAKXF9fIFwgKF8pIHwgKF9ffCAgIDwgIF9fLyB8Xy4vIC9fX198IHx8IChfX3wgfF8pIHwKfF9fXy9cX19fLyBcX19ffF98XF9cX19ffFxfX1xfX19fXy8gXF9fXF9fX3wgLl9fLyAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgfCAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHxffCAgICAK"
+	versionTpl := `%s
+Name: socket2tcp
+Version: %s
+Arch: %s
+BuildDate: %s
+CommitID: %s
+`
+	banner, _ := base64.StdEncoding.DecodeString(bannerBase64)
+	return fmt.Sprintf(versionTpl, banner, Version, runtime.GOOS+"/"+runtime.GOARCH, BuildDate, CommitID)
 }
