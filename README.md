@@ -29,5 +29,5 @@ socket2tcp -s /tmp/test.sock -r 127.0.0.1:8000
 python3 -m http.server
 
 # use curl to test it
-curl --no-buffer --unix-socket /tmp/test.sock http://127.0.0.1:8080/
+curl --no-buffer --unix-socket /tmp/test.sock http://127.0.0.1:8000
 ```

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -9,7 +10,6 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -35,7 +35,6 @@ var rootCmd = &cobra.Command{
 }
 
 func run() {
-
 	logrus.Infof("local socket forwarding to remote tcp: %s => %s", socket, remote)
 
 	l, err := net.Listen("unix", socket)
@@ -43,31 +42,29 @@ func run() {
 		logrus.Fatal(err)
 	}
 
-	// Handle common process-killing signals so we can gracefully shut down:
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, os.Kill, syscall.SIGTERM)
-	go func(c chan os.Signal) {
+	// Handle common process-killing signals, so we can gracefully shut down:
+	ctx, stop := signal.NotifyContext(context.TODO(), os.Interrupt, os.Kill)
+	defer stop()
+	go func(ctx context.Context) {
 		// Wait for a SIGINT or SIGKILL:
-		sig := <-c
-		logrus.Infof("caught signal %s: shutting down.", sig)
+		<-ctx.Done()
+		logrus.Info("Receive termination signal, gracefully shutdown.")
 		// Stop listening (and unlink the socket if unix type):
-		err := l.Close()
-		if err != nil {
-			logrus.Error(err)
-		}
-	}(sigs)
+		_ = l.Close()
+	}(ctx)
 
 	for {
 		inConn, err := l.Accept()
 		if err != nil {
 			if strings.Contains(err.Error(), "use of closed network connection") {
 				logrus.Info("server shutdown.")
-				os.Exit(0)
+				return
 			} else {
 				logrus.Error(err)
 				continue
 			}
 		}
+
 		go func() {
 			defer func() { _ = inConn.Close() }()
 			outConn, err := net.Dial("tcp", remote)
@@ -76,6 +73,8 @@ func run() {
 				return
 			}
 			defer func() { _ = outConn.Close() }()
+
+			logrus.Infof("Handle conn %s => %s", socket, outConn.RemoteAddr())
 			_, _, err = relay(inConn, outConn)
 			if err != nil {
 				logrus.Error(err)
