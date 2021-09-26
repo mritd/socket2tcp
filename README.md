@@ -35,8 +35,8 @@ socket2tcp -s /tmp/test.sock -r 127.0.0.1:8000
 # 3. Now use the curl command to access the local socket file, 
 # socket2tcp will forward the traffic to the python3 simple http server
 #
-# ⚠️ Note: Any traffic sent to "/tmp/test.sock" will be forwarded to the tcp address of the "-r" option;
-# The "http:127.0.0.1:8000" address at the end is just for curl to set the correct HTTP header,
+# Note: Any traffic sent to "/tmp/test.sock" will be forwarded to the tcp address of the "-r" option;
+# The "http://127.0.0.1:8000" address at the end is just for curl to set the correct HTTP header,
 # In actual use, we may not send HTTP traffic, it may be pure TCP traffic or other TCP-based protocols, 
 # such as gRPC、FTP、SMTP, etc.
 curl --no-buffer --unix-socket /tmp/test.sock http://127.0.0.1:8000
