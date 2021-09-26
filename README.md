@@ -6,7 +6,7 @@
 
 ## Install
 
-`go install`
+Download the pre-compiled executable bin file or execute the `go install github.com/mritd/socket2tcp@latest` command.
 
 ## Usage
 
@@ -26,12 +26,18 @@ Flags:
 ## Example
 
 ```sh
-# start forwarding
-socket2tcp -s /tmp/test.sock -r 127.0.0.1:8000
-
-# start py simple http server
+# 1. Start a python simple http server
 python3 -m http.server
 
-# use curl to test it
+# 2. Use socket2tcp to map the local socket file to port 8000 of the python3 simple http server
+socket2tcp -s /tmp/test.sock -r 127.0.0.1:8000
+
+# 3. Now use the curl command to access the local socket file, 
+# socket2tcp will forward the traffic to the python3 simple http server
+#
+# ⚠️ Note: Any traffic sent to "/tmp/test.sock" will be forwarded to the tcp address of the "-r" option;
+# The "http:127.0.0.1:8000" address at the end is just for curl to set the correct HTTP header,
+# In actual use, we may not send HTTP traffic, it may be pure TCP traffic or other TCP-based protocols, 
+# such as gRPC、FTP、SMTP, etc.
 curl --no-buffer --unix-socket /tmp/test.sock http://127.0.0.1:8000
 ```
