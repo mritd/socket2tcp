@@ -26,7 +26,7 @@ Flags:
 ## Example
 
 ```sh
-# 1. Start a python simple http server
+# 1. Start a python simple http server(it listen on 0.0.0.0:8000 by default)
 python3 -m http.server
 
 # 2. Use socket2tcp to map the local socket file to port 8000 of the python3 simple http server
