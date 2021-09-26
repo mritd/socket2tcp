@@ -1,5 +1,9 @@
 # socket2tcp
 
+> socket2tcp is a small tool that redirects local socket file traffic to the target tcp port; 
+> This tool is used for development and debugging purposes, and its stability and performance
+> are not reliable in a production environment.
+
 ## Install
 
 `go install`
